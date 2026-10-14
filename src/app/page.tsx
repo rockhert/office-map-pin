@@ -13,7 +13,7 @@ const TIP_X = 55;
 const pinHeightFor = (w: number, h: number) => Math.min(160, Math.max(60, Math.min(w, h) * 0.14));
 
 export default function Page() {
-  const [file, setFile] = useState(maps[0]?.file ?? "");
+  const [file, setFile] = useState((maps.find((m) => m.name === "梅田") ?? maps[0])?.file ?? "");
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [natural, setNatural] = useState({ w: 0, h: 0 });
   const [shown, setShown] = useState({ w: 0, h: 0 });

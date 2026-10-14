@@ -8,4 +8,4 @@ public/maps
 src/maps.json
 *.tsbuildinfo
 .claude
-pin.png
+/pin.png
