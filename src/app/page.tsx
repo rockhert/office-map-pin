@@ -35,7 +35,10 @@ export default function Page() {
     const el = imgRef.current;
     if (!el) return;
     // 読み込みが画面の準備より先に終わっていた場合に備える
-    if (el.complete && el.naturalWidth) setNatural({ w: el.naturalWidth, h: el.naturalHeight });
+    if (el.complete && el.naturalWidth) {
+      setNatural({ w: el.naturalWidth, h: el.naturalHeight });
+      setShown({ w: el.clientWidth, h: el.clientHeight });
+    }
     const ro = new ResizeObserver(() => setShown({ w: el.clientWidth, h: el.clientHeight }));
     ro.observe(el);
     return () => ro.disconnect();
