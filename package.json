@@ -1,0 +1,23 @@
+{
+  "name": "office-map-pin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "maps": "node scripts/gen-maps.mjs",
+    "dev": "npm run maps && next dev",
+    "build": "npm run maps && next build",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "sharp": "^0.35.5",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.150.0"
+  }
+}
