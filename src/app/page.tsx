@@ -88,7 +88,7 @@ export default function Page() {
             <option key={m.file} value={m.file}>{m.name}</option>
           ))}
         </select>
-        <span style={{ flex: 1, fontSize: 13, color: "#57606a" }}>マップをクリックするとピンを刺せます。別の場所をクリックすると移動します。</span>
+        <span style={{ flex: 1 }} />
         <button style={btn} onClick={() => setPos(null)} disabled={!pos}>ピンを消す</button>
         <button style={{ ...btn, background: "#0969da", color: "#fff", borderColor: "#0969da" }} onClick={save}>PNGで保存</button>
       </div>
