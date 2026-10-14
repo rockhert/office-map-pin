@@ -12,13 +12,24 @@ const TIP_X = 55;
 // 元画像サイズに対するピンの高さ（画面表示と保存画像で共通）
 const pinHeightFor = (w: number, h: number) => Math.min(160, Math.max(60, Math.min(w, h) * 0.14));
 
+// iPadOS は Mac と名乗るため、タッチ対応かどうかも見る
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 export default function Page() {
   const [file, setFile] = useState((maps.find((m) => m.name === "梅田") ?? maps[0])?.file ?? "");
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [natural, setNatural] = useState({ w: 0, h: 0 });
   const [shown, setShown] = useState({ w: 0, h: 0 });
   const imgRef = useRef<HTMLImageElement>(null);
+  const pinRef = useRef<HTMLImageElement | null>(null);
   const current = maps.find((m) => m.file === file);
+
+  useEffect(() => {
+    // 保存時にすぐ使えるよう、ピン画像を先に読み込んでおく
+    const pin = new Image();
+    pin.src = `${BASE}/pin.png`;
+    pinRef.current = pin;
+  }, []);
 
   useEffect(() => {
     const el = imgRef.current;
@@ -51,21 +62,31 @@ export default function Page() {
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(img, 0, 0);
     if (pos) {
-      const pin = new Image();
-      pin.src = `${BASE}/pin.png`;
+      const pin = pinRef.current!;
       await pin.decode();
       const ph = pinHeightFor(w, h);
       const pw = (ph * PIN_W) / PIN_H;
       ctx.drawImage(pin, pos.x * w - (ph * TIP_X) / PIN_H, pos.y * h - ph, pw, ph);
     }
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `${current.name}.png`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }, "image/png");
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) return;
+    const fileName = `${current.name}.png`;
+
+    // iPhone / iPad は共有メニュー（「画像を保存」が選べる）を使う
+    const file = new File([blob], fileName, { type: "image/png" });
+    if (isIOS() && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+      }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
   };
 
   const scale = natural.w ? shown.w / natural.w : 0;
