@@ -9,3 +9,4 @@ src/maps.json
 *.tsbuildinfo
 .claude
 /pin.png
+*.apk
