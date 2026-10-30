@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.rockhert.officemappin",
+  "appName": "オフィスマップ",
+  "webDir": "out",
+  "server": {
+    "url": "https://rockhert.github.io/office-map-pin/",
+    "androidScheme": "https"
+  }
+}

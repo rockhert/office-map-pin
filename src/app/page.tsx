@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import maps from "../maps.json";
 
 // pin.png(119x256)の針先の位置
@@ -14,6 +15,25 @@ const pinHeightFor = (w: number, h: number) => Math.min(160, Math.max(60, Math.m
 
 // iPadOS は Mac と名乗るため、タッチ対応かどうかも見る
 const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+const blobToBase64 = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+
+const shareInApp = async (blob: Blob, fileName: string) => {
+  const { Filesystem, Directory } = await import("@capacitor/filesystem");
+  const { Share } = await import("@capacitor/share");
+  const { uri } = await Filesystem.writeFile({ path: fileName, data: await blobToBase64(blob), directory: Directory.Cache });
+  try {
+    await Share.share({ title: fileName, files: [uri] });
+  } catch {
+    // 共有メニューを閉じた場合は何もしない
+  }
+};
 
 export default function Page() {
   const [file, setFile] = useState((maps.find((m) => m.name === "梅田") ?? maps[0])?.file ?? "");
@@ -74,6 +94,12 @@ export default function Page() {
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) return;
     const fileName = `${current.name}.png`;
+
+    // Android アプリ版はダウンロードが使えないため、共有メニューから保存する
+    if (Capacitor.isNativePlatform()) {
+      await shareInApp(blob, fileName);
+      return;
+    }
 
     // iPhone / iPad は共有メニュー（「画像を保存」が選べる）を使う
     const file = new File([blob], fileName, { type: "image/png" });
